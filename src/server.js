@@ -6,6 +6,7 @@ import hrRouter from "./routes/hrRoutes.js"
 import authRoter from "./routes/authRouter.js"
 import AttendaceRouter from "./routes/attendanceRoutes.js"
 import "./utils/markAbsent.js"
+import LeaveRouter from "./routes/leaveRoutes.js"
 
 const app = express()
 
@@ -19,6 +20,7 @@ connectDB()
 app.use("/api/v1/hr", hrRouter)
 app.use("/api/v1/auth", authRoter)
 app.use("/api/v1/attendance", AttendaceRouter)
+app.use("/api/v1/leave", LeaveRouter)
 
 app.listen(PORT, () => {
     console.log("Server Started Successfully")

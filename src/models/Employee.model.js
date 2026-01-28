@@ -28,7 +28,13 @@ const EmployeeSchema = new mongoose.Schema({
     enum: ['Full-time', 'Intern', 'Contract'], 
     default: 'Full-time' 
   },
-  isActive: { type: Boolean, default: true }
+  leaveBalance: {
+  casual: { type: Number, default: 12 },
+  sick: { type: Number, default: 7 },
+  paid: { type: Number, default: 15 },
+  unpaid: { type: Number, default: 0 }
+},
+isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 
 const Employee = mongoose.model('Employee', EmployeeSchema);

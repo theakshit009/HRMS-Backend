@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { type } from "os";
 
 const AttendanceSchema = new mongoose.Schema({
     employeeId:{
@@ -22,6 +23,9 @@ const AttendanceSchema = new mongoose.Schema({
         default: "Present"
     },
     faceMatchScore: {
+        type: Number,
+    },
+    workingHours: {
         type: Number,
     },
     markedBy: {

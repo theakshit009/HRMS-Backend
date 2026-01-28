@@ -4,6 +4,7 @@ import { upload } from '../config/multer.js'
 import { validate } from '../middleware/validateRequest.js'
 import { registerEmployeeSchema } from '../validators/employee.validator.js'
 import { authMiddleware } from '../middleware/authMiddleware.js'
+import { calculatePayroll } from '../controller/payroll.controller.js'
 
 const hrRouter = expess.Router()
 
@@ -25,5 +26,7 @@ hrRouter.post('/dcoument-verification', authMiddleware, handelDocumentVerificati
 hrRouter.post('/update-salary', authMiddleware, addSalary)
 
 hrRouter.get('/salary', authMiddleware, getSalary)
+
+hrRouter.get('/payroll', authMiddleware, calculatePayroll)
 
 export default hrRouter

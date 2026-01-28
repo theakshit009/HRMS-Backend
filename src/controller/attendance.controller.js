@@ -35,6 +35,7 @@ export const markAttendanceByFace = async (req, res) =>{
             return res.status(400).json({
                 messgae: "Face not matched"
             })
+            console.log("Face matched")
         }
         await Attendance.create({
             employeeId,
@@ -123,6 +124,10 @@ export const checkoutEmployee = async (req, res) => {
             })
         }
         attendance.checkOutTime = new Date()
+
+        const workingHours = ((attendance.checkOutTime - attendance.checkInTime) / (1000 * 60 * 60)).toFixed(2)
+
+        attendance.workingHours = Number(workingHours)
         await attendance.save()
         res.status(200).json({
             message: "Checkout Done Successfully",
@@ -135,3 +140,44 @@ export const checkoutEmployee = async (req, res) => {
         })
     }
 }
+
+export const getAttendanceByMonth = async (req, res) => {
+    try {
+        const user = req.user
+        const {month, year, employeeId} = req.query
+        if(user.role !== "HR"){
+            if(user.employeeId !== employeeId){
+                return res.status(400).json({
+                    message: "Unauthorized Access"
+                })
+            }
+        }
+        const monthStr = `${year}-${month.padStart(2, "0")}`
+
+        const attendance = await Attendance.find({
+            employeeId,
+            date: {$regex: `^${monthStr}`}
+        }).sort({date: 1})
+
+        const totalDays = attendance.length
+        const presentDays = attendance.filter(a => a.status === "Present").length
+        const absentDays = attendance.filter(a => a.status === "Absent").length
+
+        res.status(200).json({
+            month,
+            year,
+            summary: {
+                totalDays,
+                presentDays,
+                absentDays
+            },
+            records: attendance
+        })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({
+            message: "Internal Server Error"
+        })
+    }
+}
+

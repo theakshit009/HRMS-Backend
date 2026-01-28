@@ -23,6 +23,7 @@
     "multer-storage-cloudinary": "^2.2.1",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.12",
+    "pdfkit": "^0.17.2",
     "zod": "^4.3.5"
   },
   "devDependencies": {

@@ -17,11 +17,7 @@ export const checkAttendanceTime = (req, res, next) => {
 export const officeIpCheck = (req, res, next) => {
      const officeIps = process.env.OFFICE_IP
 
-     console.log(officeIps)
-
     let employeeIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress
-
-    console.log(employeeIp)
 
     if(employeeIp.startsWith("::ffff:")){
         employeeIp = employeeIp.replace("::ffff:", "")

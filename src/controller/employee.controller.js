@@ -204,24 +204,25 @@ export const handelDocumentVerification = async (req, res) => {
 
 export const addSalary = async (req, res) => {
   try {
+    const user = req.user
     if(user.role !== "HR"){
         return res.status(401).json({
             message: "Unauthorized Access"
         })
     }
-    const {employeeId, hra, basicSalary, deductions, allowances} = req.body
+    const {employeeId, hre, basicSalary, deductions, allowances} = req.body
     if(!employeeId){
       return res.status(400).json({
         message: "EmployeeID is undefined"
       })
     }
-    const totalSalary = basicSalary + hra + allowances - deductions
-    const salary = await Salary({employeeId})
+    const totalSalary = basicSalary + hre + allowances - deductions
+    let salary = await Salary({employeeId})
     if(!salary) {
       salary = new Salary({employeeId})
     }
     if(basicSalary) salary.basicSalary = basicSalary
-    if(hra) salary.hra = hra
+    if(hre) salary.hre = hre
     if(deductions) salary.deductions = deductions
     if(allowances) salary.allowances = allowances
     if(totalSalary) salary.totalSalary = totalSalary
