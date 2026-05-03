@@ -55,30 +55,38 @@ export const userLogin = async (req, res) => {
 
 export const changePassword = async (req, res) => {
     try {
-        const userId = req.user.id
-        const {password, oldPassword} = req.body
-        const employee = await Employee.findById(userId)
-        if(!employee){
-            return res.status(400).json({
-                message: "Employee not found"
-            })
+        // Use req.user.id from authMiddleware
+        const { oldPassword, newPassword } = req.body;
+        
+        if (!oldPassword || !newPassword) {
+            return res.status(400).json({ message: "Old and new passwords are required" });
         }
-        const isMatch = await bcrypt.compare(oldPassword, employee.password)
-        if(!isMatch){
+
+        const employee = await Employee.findById(req.user.id);
+        if (!employee) {
+            return res.status(404).json({
+                message: "Employee not found"
+            });
+        }
+
+        const isMatch = await bcrypt.compare(oldPassword, employee.password);
+        if (!isMatch) {
             return res.status(400).json({
                 message: "Incorrect Old Password"
-            })
+            });
         }
-        const hashPassword = await bcrypt.hash(password, 12)
-        employee.password = hashPassword
-        await employee.save()
+
+        const hashPassword = await bcrypt.hash(newPassword, 12);
+        employee.password = hashPassword;
+        await employee.save();
+
         res.status(200).json({
             message: "Password Changed Successfully"
-        })
+        });
     } catch (error) {
-        console.error(error)
+        console.error(error);
         res.status(500).json({
             message: "Internal Server Error"
-        }) 
+        });
     }
-}
+};

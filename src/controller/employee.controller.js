@@ -57,7 +57,7 @@ export const registerEmployee = async (req, res) => {
         fullName,
         employeeId,
         password
-    })
+    }).catch(err => console.error("Failed to send credentials email:", err.message));
 
     res.status(201).json({
       message: "Employee Added",
@@ -72,30 +72,48 @@ export const registerEmployee = async (req, res) => {
 
 export const getEmployeeDetails = async (req, res) => {
   try {
-    const user = req.user
-    const {employeeId} = req.body
-    if(user.employeeId !== employeeId || user.role !== "HR"){
-      return res.status(400).json({
+    const user = req.user;
+    const employeeId = req.query.employeeId || req.body?.employeeId || user?.employeeId;
+
+    if (user.employeeId !== employeeId && user.role !== "HR") {
+      return res.status(401).json({
         message: "Unauthorized Access"
-      })
+      });
     }
-    if(!employeeId){
+
+    if (!employeeId) {
       return res.status(400).json({
         message: "EmployeeId is Required"
-      })
+      });
     }
-    const employee = await Employee.findOne({employeeId})
+
+    const employee = await Employee.findOne({ employeeId }).lean();
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
+    // Populate manager name if available
+    if (employee.reportingManager) {
+      const manager = await Employee.findOne({ employeeId: employee.reportingManager }).select('fullName email');
+      if (manager) {
+        employee.reportingManagerDetails = {
+          name: manager.fullName,
+          email: manager.email
+        };
+      }
+    }
+
     res.status(200).json({
-      message: "Request Successfull",
+      message: "Request Successful",
       data: employee
-    })
+    });
   } catch (error) {
-    console.error(error)
+    console.error(error);
     res.status(500).json({
-      message: "Interna Server Error"
-    })
+      message: "Internal Server Error"
+    });
   }
-}
+};
 
 
 export const handelDocuments = async (req, res) => {
