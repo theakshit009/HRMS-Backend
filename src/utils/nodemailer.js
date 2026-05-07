@@ -1,23 +1,22 @@
 import nodemailer from "nodemailer"
 import "dotenv/config"
 
+// Create a reusable transporter object
+const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    },
+    family: 4, // forces IPv4, often faster on Render/Vercel
+    tls: {
+        rejectUnauthorized: false
+    }
+})
+
 export const sendEmployeeCredentials = async ({to, fullName, employeeId, password}) => {
-    const transporter = nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 587,
-        secure: false,
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-        },
-        family: 4, // forces IPv4
-        tls: {
-            rejectUnauthorized: false
-        },
-        connectionTimeout: 15000,
-        greetingTimeout: 15000,
-        socketTimeout: 15000
-    })
     const mail = {
         from: `"HR Team" <${process.env.EMAIL_USER}>`,
         to,
@@ -40,20 +39,6 @@ export const sendEmployeeCredentials = async ({to, fullName, employeeId, passwor
 }
 
 export const sendOTPEmail = async ({to, fullName, otp}) => {
-    const transporter = nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 587,
-        secure: false,
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-        },
-        family: 4,
-        tls: {
-            rejectUnauthorized: false
-        }
-    })
-
     const mail = {
         from: `"HR Team" <${process.env.EMAIL_USER}>`,
         to,
