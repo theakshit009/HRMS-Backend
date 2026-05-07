@@ -107,7 +107,7 @@ export const forgotPassword = async (req, res) => {
         employee.resetPasswordOTPExpires = Date.now() + 10 * 60 * 1000;
         await employee.save();
 
-        await sendOTPEmail({ to: email, fullName: employee.fullName, otp });
+        sendOTPEmail({ to: email, fullName: employee.fullName, otp });
 
         res.status(200).json({ message: "OTP sent to your email" });
     } catch (error) {
