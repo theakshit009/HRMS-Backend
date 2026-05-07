@@ -1,5 +1,11 @@
 import nodemailer from "nodemailer"
 import "dotenv/config"
+import dns from "dns"
+
+// Force IPv4 as default for DNS resolution to avoid ENETUNREACH errors on Render
+if (dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder('ipv4first');
+}
 
 // Create a reusable transporter object
 const transporter = nodemailer.createTransport({
@@ -10,7 +16,6 @@ const transporter = nodemailer.createTransport({
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-    family: 4, // forces IPv4, often faster on Render/Vercel
     tls: {
         rejectUnauthorized: false
     }
