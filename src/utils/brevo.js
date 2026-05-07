@@ -1,8 +1,14 @@
 import { BrevoClient } from "@getbrevo/brevo";
 import "dotenv/config";
 
+const apiKey = process.env.BREVO_API_KEY || process.env.BREVO_Api;
+
+if (!apiKey) {
+    console.error("CRITICAL ERROR: Brevo API Key is missing! Please set BREVO_API_KEY in your environment variables.");
+}
+
 const brevo = new BrevoClient({ 
-    apiKey: process.env.BREVO_API_KEY 
+    apiKey: apiKey || "" 
 });
 
 const sender = {
