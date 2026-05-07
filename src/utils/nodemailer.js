@@ -8,7 +8,8 @@ if (dns.setDefaultResultOrder) {
 }
 
 const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp-relay.brevo.com",
+    port: 587,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
@@ -17,9 +18,9 @@ const transporter = nodemailer.createTransport({
 
 transporter.verify((err, success) => {
     if(err){
-        console.log("SMTP Error:", err)
+        console.log("Brevo SMTP Error:", err)
     } else {
-        console.log("SMTP Ready")
+        console.log("Brevo SMTP Ready")
     }
 })
 
