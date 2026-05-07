@@ -2,7 +2,7 @@ import cloudinary from "../config/cloudinary.js";
 import Employee from "../models/Employee.model.js";
 import { genEmpId, genPassword } from "../utils/generator.js";
 import bcrypt from "bcrypt"
-import { sendEmployeeCredentials } from "../utils/nodemailer.js";
+import { sendEmployeeCredentials } from "../utils/brevo.js";
 import Documents from "../models/Documents.model.js";
 import Salary from "../models/Salary.model.js";
 
@@ -190,12 +190,13 @@ export const getEmployeeDocuments = async (req, res) => {
     
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: error.message });
   }
 }
 
 export const handelDocumentVerification = async (req, res) => {
   try {
+    const user = req.user;
     if(user.role !== "HR"){
         return res.status(401).json({
             message: "Unauthorized Access"
@@ -216,7 +217,7 @@ export const handelDocumentVerification = async (req, res) => {
     })
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: error.message });
   }
 }
 
@@ -235,7 +236,7 @@ export const addSalary = async (req, res) => {
       })
     }
     const totalSalary = basicSalary + hre + allowances - deductions
-    let salary = await Salary({employeeId})
+    let salary = await Salary.findOne({employeeId})
     if(!salary) {
       salary = new Salary({employeeId})
     }
@@ -251,7 +252,7 @@ export const addSalary = async (req, res) => {
     })
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: error.message });
   }
 }
 
@@ -276,6 +277,6 @@ export const getSalary = async (req, res) => {
     })
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: error.message });
   }
 }

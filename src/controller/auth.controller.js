@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken"
 import Employee from "../models/Employee.model.js"
 import bcrypt from "bcrypt"
 import "dotenv/config"
-import { sendOTPEmail } from "../utils/nodemailer.js"
+import { sendOTPEmail } from "../utils/brevo.js"
 
 export const userLogin = async (req, res) => {
     try {
@@ -107,7 +107,7 @@ export const forgotPassword = async (req, res) => {
         employee.resetPasswordOTPExpires = Date.now() + 10 * 60 * 1000;
         await employee.save();
 
-        sendOTPEmail({ to: email, fullName: employee.fullName, otp });
+        await sendOTPEmail({ to: email, fullName: employee.fullName, otp });
 
         res.status(200).json({ message: "OTP sent to your email" });
     } catch (error) {
