@@ -34,7 +34,9 @@ const EmployeeSchema = new mongoose.Schema({
   paid: { type: Number, default: 15 },
   unpaid: { type: Number, default: 0 }
 },
-isActive: { type: Boolean, default: true }
+isActive: { type: Boolean, default: true },
+resetPasswordOTP: { type: String },
+resetPasswordOTPExpires: { type: Date }
 }, { timestamps: true });
 
 const Employee = mongoose.model('Employee', EmployeeSchema);

@@ -1,11 +1,19 @@
 import "dotenv/config"
 
+const parseTimeToMinutes = (timeStr) => {
+    if (!timeStr) return 0;
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+};
+
 export const checkAttendanceTime = (req, res, next) => {
     const now = new Date()
-
     const currentTime = now.getHours() * 60 + now.getMinutes()
 
-    if(currentTime < process.env.START_TIME || currentTime > process.env.END_TIME){
+    const startTime = parseTimeToMinutes(process.env.START_TIME || "09:00");
+    const endTime = parseTimeToMinutes(process.env.END_TIME || "18:00");
+
+    if (currentTime < startTime || currentTime > endTime) {
         return res.status(400).json({
             message: `Attendance is only allowed between ${process.env.START_TIME} and ${process.env.END_TIME}`
         })
@@ -37,4 +45,3 @@ export const officeIpCheck = (req, res, next) => {
     }
     next()
 }
-

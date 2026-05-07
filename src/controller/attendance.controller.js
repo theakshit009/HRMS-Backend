@@ -149,14 +149,16 @@ export const checkoutEmployee = async (req, res) => {
 export const getAttendanceByMonth = async (req, res) => {
     try {
         const user = req.user
-        const {month, year, employeeId} = req.query
-        if(user.role !== "HR"){
-            if(user.employeeId !== employeeId){
-                return res.status(400).json({
-                    message: "Unauthorized Access"
-                })
-            }
+        let { month, year, employeeId } = req.query
+        
+        if (user.role !== "HR") {
+            employeeId = user.employeeId
+        } else if (!employeeId) {
+            return res.status(400).json({
+                message: "EmployeeId is required for HR"
+            })
         }
+
         const monthStr = `${year}-${month.padStart(2, "0")}`
 
         const attendance = await Attendance.find({

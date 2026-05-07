@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken"
 import Employee from "../models/Employee.model.js"
 import bcrypt from "bcrypt"
 import "dotenv/config"
+import { sendOTPEmail } from "../utils/nodemailer.js"
 
 export const userLogin = async (req, res) => {
     try {
@@ -88,5 +89,56 @@ export const changePassword = async (req, res) => {
         res.status(500).json({
             message: "Internal Server Error"
         });
+    }
+};
+
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const employee = await Employee.findOne({ email });
+
+        if (!employee) {
+            return res.status(404).json({ message: "Employee not found with this email" });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        employee.resetPasswordOTP = otp;
+        employee.resetPasswordOTPExpires = Date.now() + 10 * 60 * 1000;
+        await employee.save();
+
+        await sendOTPEmail({ to: email, fullName: employee.fullName, otp });
+
+        res.status(200).json({ message: "OTP sent to your email" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+export const resetPassword = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+        
+        const employee = await Employee.findOne({ 
+            email,
+            resetPasswordOTP: otp,
+            resetPasswordOTPExpires: { $gt: Date.now() }
+        });
+
+        if (!employee) {
+            return res.status(400).json({ message: "Invalid or expired OTP" });
+        }
+
+        const hashPassword = await bcrypt.hash(newPassword, 12);
+        employee.password = hashPassword;
+        employee.resetPasswordOTP = undefined;
+        employee.resetPasswordOTPExpires = undefined;
+        await employee.save();
+
+        res.status(200).json({ message: "Password reset successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal Server Error" });
     }
 };
