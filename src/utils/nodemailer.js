@@ -7,17 +7,19 @@ if (dns.setDefaultResultOrder) {
     dns.setDefaultResultOrder('ipv4first');
 }
 
-// Create a reusable transporter object
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false, // true for 465, false for other ports
+    service: "gmail",
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-    },
-    tls: {
-        rejectUnauthorized: false
+    }
+})
+
+transporter.verify((err, success) => {
+    if(err){
+        console.log("SMTP Error:", err)
+    } else {
+        console.log("SMTP Ready")
     }
 })
 
