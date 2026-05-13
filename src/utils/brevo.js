@@ -5,6 +5,8 @@ const apiKey = process.env.BREVO_API_KEY || process.env.BREVO_Api;
 
 if (!apiKey) {
     console.error("CRITICAL ERROR: Brevo API Key is missing! Please set BREVO_API_KEY in your environment variables.");
+} else if (apiKey.startsWith('xsmtpsib-')) {
+    console.warn("⚠️ WARNING: You are using a Brevo SMTP Key ('xsmtpsib-...') instead of a v3 API Key ('xkeysib-...'). This will cause 401 Unauthorized errors with the SDK.");
 }
 
 const brevo = new BrevoClient({ 
@@ -15,6 +17,10 @@ const sender = {
     name: "HR Team",
     email: process.env.EMAIL_USER,
 };
+
+if (!sender.email) {
+    console.warn("⚠️ WARNING: EMAIL_USER is not set. Emails may fail to send if sender email is missing.");
+}
 
 export const sendEmployeeCredentials = async ({ to, fullName, employeeId, password }) => {
     try {

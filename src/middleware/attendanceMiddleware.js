@@ -10,8 +10,8 @@ export const checkAttendanceTime = (req, res, next) => {
     const now = new Date()
     const currentTime = now.getHours() * 60 + now.getMinutes()
 
-    const startTime = parseTimeToMinutes(process.env.START_TIME || "09:00");
-    const endTime = parseTimeToMinutes(process.env.END_TIME || "18:00");
+    const startTime = parseTimeToMinutes(process.env.START_TIME);
+    const endTime = parseTimeToMinutes(process.env.END_TIME);
 
     if (currentTime < startTime || currentTime > endTime) {
         return res.status(400).json({
