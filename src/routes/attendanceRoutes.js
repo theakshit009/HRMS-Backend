@@ -2,9 +2,12 @@ import express from 'express'
 import { authMiddleware } from '../middleware/authMiddleware.js'
 import { checkAttendanceTime, officeIpCheck } from '../middleware/attendanceMiddleware.js'
 import { checkoutEmployee, getAttendanceByMonth, getTodayStatus, markAttendanceByFace, markAttendanceByHR, getAllAttendance } from '../controller/attendance.controller.js'
-import { getAttendanceSettings, updateAttendanceSettings, resetAttendanceSettings } from '../controller/attendanceSettings.controller.js'
+import { getAttendanceSettings, updateAttendanceSettings, resetAttendanceSettings, preCheckAttendance } from '../controller/attendanceSettings.controller.js'
 
 const AttendaceRouter = express.Router()
+
+// Pre-check endpoint for employees
+AttendaceRouter.get('/pre-check', authMiddleware, preCheckAttendance)
 
 // Settings endpoints
 AttendaceRouter.get('/settings', authMiddleware, getAttendanceSettings)

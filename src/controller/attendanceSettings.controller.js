@@ -3,7 +3,8 @@ import {
     updateAttendanceConfig, 
     resetAttendanceConfigToEnv, 
     getClientIp, 
-    parseTimeToMinutes 
+    parseTimeToMinutes,
+    getCurrentTimeInMinutes
 } from "../utils/attendanceConfig.js";
 import Employee from "../models/Employee.model.js";
 
@@ -171,6 +172,49 @@ export const resetAttendanceSettings = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Failed to reset attendance settings."
+        });
+    }
+};
+
+/**
+ * GET /api/v1/attendance/pre-check
+ * Real-time pre-check for employee face attendance (validates real client IP and shift time window)
+ */
+export const preCheckAttendance = async (req, res) => {
+    try {
+        const config = await getAttendanceConfig();
+        const detectedIp = getClientIp(req);
+        const isIpAllowed = !config.officeIps || config.officeIps.length === 0 || config.officeIps.includes(detectedIp);
+
+        const currentTime = getCurrentTimeInMinutes();
+        const startTime = parseTimeToMinutes(config.startTime);
+        const endTime = parseTimeToMinutes(config.endTime);
+        const isTimeAllowed = currentTime >= startTime && currentTime <= endTime;
+
+        return res.status(200).json({
+            success: true,
+            network: {
+                allowed: isIpAllowed,
+                detectedIp,
+                message: isIpAllowed 
+                    ? `Office Network Authorized (${detectedIp})` 
+                    : `IP Mismatch: Detected IP (${detectedIp}) is not an authorized office network.`
+            },
+            time: {
+                allowed: isTimeAllowed,
+                startTime: config.startTime,
+                endTime: config.endTime,
+                message: isTimeAllowed 
+                    ? `Shift Window Active (${config.startTime} - ${config.endTime})` 
+                    : `Shift Window Closed: Attendance is only permitted between ${config.startTime} and ${config.endTime}.`
+            },
+            canMarkAttendance: isIpAllowed && isTimeAllowed
+        });
+    } catch (error) {
+        console.error("Pre-check Error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to perform attendance pre-check."
         });
     }
 };
