@@ -5,6 +5,7 @@ import { validate } from '../middleware/validateRequest.js'
 import { registerEmployeeSchema } from '../validators/employee.validator.js'
 import { authMiddleware } from '../middleware/authMiddleware.js'
 import { calculatePayroll } from '../controller/payroll.controller.js'
+import { getAttendanceSettings, updateAttendanceSettings, resetAttendanceSettings } from '../controller/attendanceSettings.controller.js'
 
 const hrRouter = expess.Router()
 
@@ -28,5 +29,10 @@ hrRouter.post('/update-salary', authMiddleware, addSalary)
 hrRouter.get('/salary', authMiddleware, getSalary)
 
 hrRouter.get('/payroll', authMiddleware, calculatePayroll)
+
+// Attendance & Office Network Settings
+hrRouter.get('/attendance-settings', authMiddleware, getAttendanceSettings)
+hrRouter.put('/attendance-settings', authMiddleware, updateAttendanceSettings)
+hrRouter.post('/attendance-settings/reset', authMiddleware, resetAttendanceSettings)
 
 export default hrRouter

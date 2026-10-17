@@ -10,6 +10,7 @@ import AttendaceRouter from "./routes/attendanceRoutes.js"
 import dashboardRouter from "./routes/dashboardRoutes.js"
 import "./utils/markAbsent.js"
 import LeaveRouter from "./routes/leaveRoutes.js"
+import { getAttendanceConfig } from "./utils/attendanceConfig.js"
 
 const app = express()
 app.set('trust proxy', true)
@@ -38,6 +39,7 @@ app.use(express.json())
 const PORT = process.env.PORT || 5000
 
 await connectDB()
+await getAttendanceConfig()
 
 app.use("/api/v1/hr", hrRouter)
 app.use("/api/v1/auth", authRoter)

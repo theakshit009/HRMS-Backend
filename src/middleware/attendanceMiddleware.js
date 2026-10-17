@@ -1,47 +1,48 @@
-import "dotenv/config"
+import { getAttendanceConfig, getClientIp, parseTimeToMinutes } from "../utils/attendanceConfig.js";
 
-const parseTimeToMinutes = (timeStr) => {
-    if (!timeStr) return 0;
-    const [hours, minutes] = timeStr.split(':').map(Number);
-    return hours * 60 + minutes;
+export const checkAttendanceTime = async (req, res, next) => {
+    try {
+        const config = await getAttendanceConfig();
+        const now = new Date();
+        const currentTime = now.getHours() * 60 + now.getMinutes();
+
+        const startTime = parseTimeToMinutes(config.startTime);
+        const endTime = parseTimeToMinutes(config.endTime);
+
+        if (currentTime < startTime || currentTime > endTime) {
+            return res.status(400).json({
+                message: `Attendance is only allowed between ${config.startTime} and ${config.endTime}`
+            });
+        }
+        next();
+    } catch (error) {
+        console.error("Attendance time check error:", error);
+        next(error);
+    }
 };
 
-export const checkAttendanceTime = (req, res, next) => {
-    const now = new Date()
-    const currentTime = now.getHours() * 60 + now.getMinutes()
+export const officeIpCheck = async (req, res, next) => {
+    try {
+        const config = await getAttendanceConfig();
+        const allowedIps = config.officeIps || [];
 
-    const startTime = parseTimeToMinutes(process.env.START_TIME);
-    const endTime = parseTimeToMinutes(process.env.END_TIME);
+        // If no IPs configured anywhere, allow or proceed
+        if (allowedIps.length === 0) {
+            return next();
+        }
 
-    if (currentTime < startTime || currentTime > endTime) {
-        return res.status(400).json({
-            message: `Attendance is only allowed between ${process.env.START_TIME} and ${process.env.END_TIME}`
-        })
+        const employeeIp = getClientIp(req);
+
+        if (!allowedIps.includes(employeeIp)) {
+            console.log(`[IP Check Failed] Access denied for IP: ${employeeIp}. Allowed IPs: ${allowedIps.join(", ")}`);
+            return res.status(400).json({
+                message: "Attendance is only allowed through the office network (IP Mismatch)",
+                detectedIp: employeeIp
+            });
+        }
+        next();
+    } catch (error) {
+        console.error("Office IP check error:", error);
+        next(error);
     }
-    next()
-}
-
-
-export const officeIpCheck = (req, res, next) => {
-    const officeIpsString = process.env.OFFICE_IP || ""
-    const allowedIps = officeIpsString.split(",").map(ip => ip.trim())
-
-    // req.ip is populated by Express, and since we set 'trust proxy', 
-    // it will correctly pick up the client's public IP from X-Forwarded-For
-    let employeeIp = req.ip
-
-    // Handle IPv6 localhost and normalization if necessary
-    if (employeeIp === "::1") employeeIp = "127.0.0.1"
-    if (employeeIp && employeeIp.startsWith("::ffff:")) {
-        employeeIp = employeeIp.replace("::ffff:", "")
-    }
-
-    if (!allowedIps.includes(employeeIp)) {
-        console.log(`[IP Check Failed] Access denied for IP: ${employeeIp}. Allowed IPs: ${allowedIps.join(", ")}`)
-        return res.status(400).json({
-            message: "Attendance is only allowed through the office network (IP Mismatch)",
-            detectedIp: employeeIp // Optional: help user identify their current IP
-        })
-    }
-    next()
-}
+};

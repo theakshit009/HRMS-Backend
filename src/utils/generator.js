@@ -12,16 +12,17 @@ export const genPassword = (lenght = 8) => {
 
 export const genEmpId = async () => {
     const currYear = new Date().getFullYear()
-    const prefix = ` EMP${currYear}`
+    const prefix = `EMP${currYear}`
 
     const lastUser = await Employee.findOne({
-        employeeId: {$regex: `^${prefix}`}
+        employeeId: {$regex: `^\\s*${prefix}`}
     }).sort({createdAt: -1}).select('employeeId')
 
     let newSeq = "001"
 
     if(lastUser && lastUser.employeeId){
-        const lastSeqStr = lastUser.employeeId.slice(-3)
+        const cleanId = lastUser.employeeId.trim();
+        const lastSeqStr = cleanId.slice(-3)
         const lastSeqNum = parseInt(lastSeqStr, 10)
 
         if(!isNaN(lastSeqNum)){

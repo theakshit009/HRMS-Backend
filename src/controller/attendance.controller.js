@@ -5,17 +5,47 @@ import { cosineSimilarity } from "../utils/faceMatching.js"
 export const markAttendanceByFace = async (req, res) =>{
     try {
         const user = req.user
-        const employeeId = user.employeeId
-        const {faceVector} = req.body
-        if(!employeeId || !faceVector) {
+        if (!user) {
+            return res.status(401).json({ message: "Unauthorized Access" })
+        }
+        const { faceVector } = req.body
+        if(!faceVector || !Array.isArray(faceVector) || faceVector.length === 0) {
             return res.status(400).json({
-                message: "EmployeeId & Face Vector is required"
+                message: "Face Vector is required for attendance"
             })
         }
+
+        // Robust lookup: by user.id first (primary key), fallback to employeeId
+        let employee = null
+        if (user.id) {
+            employee = await Employee.findById(user.id)
+        }
+        if (!employee && user.employeeId) {
+            employee = await Employee.findOne({ employeeId: user.employeeId }) || 
+                       await Employee.findOne({ employeeId: user.employeeId.trim() })
+        }
+
+        if(!employee){
+            return res.status(404).json({
+                message: "Employee record not found"
+            })
+        }
+
+        if(!employee.faceVector || !Array.isArray(employee.faceVector) || employee.faceVector.length === 0){
+            return res.status(400).json({
+                message: "Employee face data is not found in database. Please register facial data first."
+            })
+        }
+
+        const employeeId = employee.employeeId
         const today = new Date().toISOString().split("T")[0]
 
         const alreadyMarked = await Attendance.findOne({
-            employeeId,
+            $or: [
+                { employeeId: employeeId },
+                { employeeId: employeeId.trim() },
+                ...(user.employeeId ? [{ employeeId: user.employeeId }, { employeeId: user.employeeId.trim() }] : [])
+            ],
             date: today
         })
         if(alreadyMarked){
@@ -23,32 +53,30 @@ export const markAttendanceByFace = async (req, res) =>{
                 message: "Attendance Already marked!!"
             })
         }
-        const employee = await Employee.findOne({employeeId})
 
-        if(!employee || !employee.faceVector){
-            return res.status(400).json({
-                message: "Employee or face Data is not Found"
-            })
-        }
         const similar = cosineSimilarity(faceVector, employee.faceVector)
         if(similar < 0.95){
             return res.status(400).json({
-                messgae: "Face not matched"
+                message: "Face not matched"
             })
-            console.log("Face matched")
         }
         await Attendance.create({
-            employeeId,
+            employeeId: employee.employeeId,
             date: today,
             faceMatchScore: similar,
             status: "Present",
-            markedBy: "Face"
+            markedBy: "Face",
+            checkInTime: new Date()
         })
+        const io = req.app.get("io");
+        if (io) {
+            io.emit("attendance_updated");
+        }
         res.status(200).json({
             message: "Attendance marked successfully"
         })
     } catch (error) {
-        console.error(error)
+        console.error("Mark Attendance Error:", error)
         res.status(500).json({
             message: "Internal Server Error"
         })
@@ -98,14 +126,20 @@ export const checkoutEmployee = async (req, res) => {
     try {
         const user = req.user
         const {employeeId} = req.body
-        if(user.employeeId !== employeeId){
+        const userEmpId = user.employeeId?.trim()
+        const reqEmpId = employeeId?.trim()
+        if(userEmpId !== reqEmpId){
             return res.status(400).json({
                 message: "Unauthorized Access"
             })
         }
         const today = new Date().toISOString().split("T")[0]
         const attendance = await Attendance.findOne({
-            employeeId,
+            $or: [
+                { employeeId },
+                { employeeId: reqEmpId },
+                { employeeId: user.employeeId }
+            ],
             date: today
         })
         if(!attendance){
