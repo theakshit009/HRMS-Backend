@@ -1,6 +1,7 @@
 import Attendance from "../models/Attendace.model.js"
 import Employee from "../models/Employee.model.js"
 import { cosineSimilarity } from "../utils/faceMatching.js"
+import { getTodayDateInTimezone } from "../utils/attendanceConfig.js"
 
 export const markAttendanceByFace = async (req, res) =>{
     try {
@@ -38,7 +39,7 @@ export const markAttendanceByFace = async (req, res) =>{
         }
 
         const employeeId = employee.employeeId
-        const today = new Date().toISOString().split("T")[0]
+        const today = getTodayDateInTimezone()
 
         const alreadyMarked = await Attendance.findOne({
             $or: [
@@ -92,7 +93,7 @@ export const markAttendanceByHR = async (req, res) => {
             })
         }
         const {employeeId, status} = req.body
-        const today = new Date().toISOString().split("T")[0]
+        const today = getTodayDateInTimezone()
 
         const alreadyMarked = await Attendance.findOne({
             employeeId,
@@ -133,7 +134,7 @@ export const checkoutEmployee = async (req, res) => {
                 message: "Unauthorized Access"
             })
         }
-        const today = new Date().toISOString().split("T")[0]
+        const today = getTodayDateInTimezone()
         const attendance = await Attendance.findOne({
             $or: [
                 { employeeId },
@@ -226,7 +227,7 @@ export const getTodayStatus = async (req, res) => {
     try {
         const user = req.user;
         const employeeId = user.employeeId;
-        const today = new Date().toISOString().split("T")[0];
+        const today = getTodayDateInTimezone();
         
         const attendance = await Attendance.findOne({
             employeeId,

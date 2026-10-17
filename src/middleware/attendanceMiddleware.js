@@ -1,10 +1,9 @@
-import { getAttendanceConfig, getClientIp, parseTimeToMinutes } from "../utils/attendanceConfig.js";
+import { getAttendanceConfig, getClientIp, parseTimeToMinutes, getCurrentTimeInMinutes } from "../utils/attendanceConfig.js";
 
 export const checkAttendanceTime = async (req, res, next) => {
     try {
         const config = await getAttendanceConfig();
-        const now = new Date();
-        const currentTime = now.getHours() * 60 + now.getMinutes();
+        const currentTime = getCurrentTimeInMinutes();
 
         const startTime = parseTimeToMinutes(config.startTime);
         const endTime = parseTimeToMinutes(config.endTime);

@@ -181,3 +181,46 @@ export const parseTimeToMinutes = (timeStr) => {
     const [hours, minutes] = timeStr.split(':').map(Number);
     return (hours || 0) * 60 + (minutes || 0);
 };
+
+/**
+ * Gets current minutes of the day in the configured office timezone (default: Asia/Kolkata)
+ * Fixes timezone mismatch when deployed on cloud providers running in UTC (e.g. Render, AWS)
+ */
+export const getCurrentTimeInMinutes = (timeZone = process.env.TIMEZONE || "Asia/Kolkata") => {
+    try {
+        const formatter = new Intl.DateTimeFormat("en-GB", {
+            timeZone,
+            hour: "numeric",
+            minute: "numeric",
+            hourCycle: "h23"
+        });
+        const parts = formatter.formatToParts(new Date());
+        let hours = 0;
+        let minutes = 0;
+        for (const part of parts) {
+            if (part.type === "hour") hours = parseInt(part.value, 10);
+            if (part.type === "minute") minutes = parseInt(part.value, 10);
+        }
+        return hours * 60 + minutes;
+    } catch (e) {
+        const now = new Date();
+        return now.getHours() * 60 + now.getMinutes();
+    }
+};
+
+/**
+ * Gets current date formatted as YYYY-MM-DD in the configured office timezone (default: Asia/Kolkata)
+ */
+export const getTodayDateInTimezone = (timeZone = process.env.TIMEZONE || "Asia/Kolkata") => {
+    try {
+        const formatter = new Intl.DateTimeFormat("en-CA", {
+            timeZone,
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        });
+        return formatter.format(new Date());
+    } catch (e) {
+        return new Date().toISOString().split("T")[0];
+    }
+};
